@@ -1,0 +1,9 @@
+javascript
+fastapi
+uvicorn
+pycryptodome
+cryptography
+colr
+colorama
+requests
+PyExecJS
