@@ -32,3 +32,10 @@ Unknown status: Logs the unknown status and exits.
 
 Retry Logic:
 If the task is Working, it retries for a maximum of MAX_RETRIES (default: 10) with a RETRY_INTERVAL of 3 seconds between attempts.
+
+
+![IMAGE 2025-01-13 16_21_21.jpg](https://s2.loli.net/2025/01/13/uTqe6sa2GDEF9z4.jpg)
+
+
+
+Email: thk8808@gmail.com
