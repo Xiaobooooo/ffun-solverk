@@ -529,7 +529,7 @@ class Funcaptcha:
         self.apiurl = apiurl
         self.blob = blob
         self.clientKey = "abc123"
-        self.funserver = "http:/127.0.0.1:6789/process_image"
+        self.funserver = "http://127.0.0.1:6789/process_image"
 
 
         self.base_headers = {
