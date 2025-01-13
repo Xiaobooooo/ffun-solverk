@@ -26,6 +26,7 @@ def create_task():
         "siteReferer": "site_referer",
         "siteKey": "site_key_here",
         "data": "blob_value",
+        "proxy": "proxy_value",
     }
 
     response = requests.post(url, json=payload, headers=HEADERS)

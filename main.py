@@ -520,6 +520,7 @@ class Funcaptcha:
             proxy: Optional[str] = None,
     ) -> None:
 
+        self.base64_img = None
         ua_data = Utils.generate_user_agent()
         print(ua_data)
         self.useragent = ua_data['user_agent']
@@ -527,6 +528,9 @@ class Funcaptcha:
         self.sitekey = sitekey
         self.apiurl = apiurl
         self.blob = blob
+        self.clientKey = "abc123"
+        self.funserver = "http:/127.0.0.1:6789/process_image"
+
 
         self.base_headers = {
             "User-Agent": self.useragent,
@@ -768,7 +772,7 @@ class Funcaptcha:
 
             for img_index, img in enumerate(result["game_data"]["customGUI"]["_challenge_imgs"]):
                 if image_encryption_enabled:
-                    base64_img = Arkose.decrypt_data(self.session.get(img).json(), self.image_decryption_key).decode()
+                    self.base64_img = Arkose.decrypt_data(self.session.get(img).json(), self.image_decryption_key).decode()
                 else:
                     val = self.session.cookies.get('_cfuvid')
                     self.session.headers.update({
@@ -782,7 +786,7 @@ class Funcaptcha:
                         try:
                             response = self.session.get(img)
                             if response.status_code == 200:
-                                base64_img = base64.b64encode(response.content).decode('utf-8')
+                                self.base64_img = base64.b64encode(response.content).decode('utf-8')
                                 break
                             elif response.status_code == 403:
                                 logger.print(f"Attempt {attempt + 1} failed with 403. Retrying...")
@@ -799,13 +803,28 @@ class Funcaptcha:
                     if attempt == max_attempts:
                         raise Exception(f"Failed to fetch image after {max_attempts} attempts")
 
-                    if not os.path.exists("jpg"):
-                        os.makedirs("jpg")
+                    payload = {
+                        "clientKey": self.clientKey,
+                        "task": {
+                            'type': 'FunCaptcha',
+                            'image': self.base64_img,
+                            'question': game,
+                        }
+                    }
+                    try:
+                        response = requests.post(self.funserver, json=payload, timeout=10)
+                        response_data = response.json()
+                        if response.status_code == 200 and response_data.get("errorId") == 0:
+                            solution = response_data.get("solution", {})
+                            predicted_index = solution.get("predicted_index", None)
+                            print(f"Image {img_index + 1}/{total_images} Predicted index:", predicted_index)
+                        else:
+                            print(f"Request failed: {response.status_code}")
+                            return {"success": False, "err": "prediction failed", "token": None}
 
-                    with open(f"jpg/{img_index}.jpg", "wb") as file:
-                        file.write(response.content)
-
-                    predicted_index = input(f"Please enter the index of the image {img_index + 1}:")
+                    except Exception as e:
+                        print(f"Error during request for image {img_index + 1}: {e}")
+                        return {"success": False, "err": f"prediction error: {str(e)}", "token": None}
 
                     index = predicted_index
                     logger.print(f"Image {img_index + 1} index: {index}")
@@ -1330,7 +1349,7 @@ class Funcaptcha:
             },
             {
                 "key": "wh",
-                "value": f"{str(uuid.uuid4().hex)}|72627afbfd19a741c7da1732218301ac"
+                "value": f"{secrets.token_hex(16)}|{secrets.token_hex(16)}"
             },
             {
                 "key": "enhanced_fp",
@@ -1595,9 +1614,9 @@ class ConcurrentTaskProcessor:
                 sitekey=task_data["siteKey"],
                 data=preset_data["data"],
                 blob=task_data.get("data", ""),
+                proxy=task_data.get("proxy", "http://127.0.0.1:7890"),
                 custom_cookies=None,
                 custom_locale=None,
-                proxy="http://127.0.0.1:7890"
             )
 
             result = solver.solve()
