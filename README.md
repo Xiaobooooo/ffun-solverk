@@ -4,6 +4,9 @@ Python 3.8 or higher
 Required libraries (can be installed via pip install -r requirements.txt)
 
 
+Arkose Labs captcha (FunCaptcha)
+You can use the service https://xevil.net/ to process image recognition.
+
 
 **Usage**
 Run the script using the following command:
